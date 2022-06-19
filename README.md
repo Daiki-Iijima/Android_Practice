@@ -1,5 +1,10 @@
 # Android_Practice
 
+# 開発環境
+- Android Studio : 2021.2.1 Patch 1
+- 動作確認済み
+    - M1 MacBookAir
+    - IntelCPU Windows10
 
 # メモ
 ## 自動ダークモードを解除する
