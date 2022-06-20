@@ -1,8 +1,12 @@
 package com.djima.dev.listviewsample2;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 
+import android.app.Dialog;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -47,5 +51,34 @@ public class MainActivity extends AppCompatActivity {
 
         //  リストビューにアダプタオブジェクトを設定
         listView.setAdapter(adapter);
+
+        //  クリック時に表示するダイアログクラスを生成
+        //  自前クラス
+        OrderConfirmDialogFragment dialog = new OrderConfirmDialogFragment();
+
+        //  ListViewにitemクリック時のリスナーを登録
+        listView.setOnItemClickListener(new ListItemClickListener(dialog));
+    }
+
+    //  リストがタップされたときのリスナクラスの生成
+    private class ListItemClickListener implements AdapterView.OnItemClickListener{
+
+        //  クリック時に表示するダイアログクラス
+        private DialogFragment m_dialog;
+
+        //  コンストラクタ
+        public ListItemClickListener(DialogFragment dialog){
+            m_dialog = dialog;
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,long id){
+            if(m_dialog == null){
+                return;
+            }
+
+            //  第２引数の値は識別するための文字列なので、任意の文字列でいい
+            m_dialog.show(getSupportFragmentManager(),"OrderConfirmDialogFragment");
+        }
     }
 }

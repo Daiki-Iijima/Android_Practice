@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.fragment.app.DialogFragment;
 
@@ -11,6 +12,7 @@ public class OrderConfirmDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle saveInstanceState){
         //  ダイアログビルダーを生成
+        //  生成するアクティビティが決まっていないので、このクラスを生成したアクティビティを取得するようにする
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         //  ダイアログのタイトルを設定
@@ -36,7 +38,24 @@ public class OrderConfirmDialogFragment extends DialogFragment {
     private class DialogButtonClickListener implements DialogInterface.OnClickListener{
         @Override
         public void onClick(DialogInterface dialog, int which){
+            //  トーストで表示するクラス
+            String msg = "";
 
+            //  タップされたアクションボタンで分岐
+            switch (which){
+                case Dialog.BUTTON_POSITIVE:    //  Positive Button
+                    msg = getString(R.string.dialog_ok_toast);
+                    break;
+                case Dialog.BUTTON_NEGATIVE:    //  Negative Button
+                    msg = getString(R.string.dialog_ng_toast);
+                    break;
+                case Dialog.BUTTON_NEUTRAL:     //  Neutral Button(OKとNG以外の問い合わせみたいなボタン)
+                    msg = getString(R.string.dialog_nu_toast);
+                    break;
+            }
+
+            //  トーストを表示
+            Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
         }
     }
 }
