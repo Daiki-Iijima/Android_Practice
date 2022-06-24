@@ -156,8 +156,20 @@ public class MainActivity extends AppCompatActivity {
 
         MenuInflater inflater = getMenuInflater();
 
-        //  コンテキストメニューに自作の.xmlをインフレート
-        inflater.inflate(R.menu.menu_context_menu_list,menu);
+        //  どの項目を選択したかを取得
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        int listPosition = info.position;
+        Map<String,Object> item = (Map<String, Object>) m_LvMenu.getItemAtPosition(listPosition);
+
+        switch ((String)item.get("name")){
+            case "ポークカレー":
+                inflater.inflate(R.menu.menu_context_spetial,menu);
+                break;
+            default:
+                //  コンテキストメニューに自作の.xmlをインフレート
+                inflater.inflate(R.menu.menu_context_menu_list,menu);
+                break;
+        }
 
         //  コンテキストメニューのタイトルを設定
         menu.setHeaderTitle(R.string.menu_list_context_header);
@@ -209,6 +221,11 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menuListContextOrder: // 注文
                 order(menu);
                 break;
+            case R.id.special:  //  ポークカレー用オプション(menu_context_spetial)
+                Toast.makeText(
+                        MainActivity.this,
+                        "スペシャルオプションを選択してくれてありがとう。",
+                        Toast.LENGTH_SHORT).show();
             default:
                 returnVal = super.onContextItemSelected(item);
                 break;
