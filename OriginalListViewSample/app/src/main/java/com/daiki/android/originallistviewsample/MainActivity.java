@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
         //  コンテンツクリック時のリスナーを設定
         m_LvMenu.setOnItemClickListener(new onClickMenuItemListener());
+
+        //  コンテキストメニューを表示させるビューを設定
+        //  Viewを継承しているクラスであれば、設定できる
+        registerForContextMenu(m_LvMenu);
     }
 
     //  リストビューにデータを表示する
@@ -76,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
             put("desc","カツと書いてありますが、実は牛です。");
         }});
 
-
         return menuList;
     }
 
@@ -108,20 +113,26 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id){
             Map<String,Object> item = (Map<String,Object>)parent.getItemAtPosition(position);
-            String name = (String)item.get("name");
-            //  priceはintなので注意
-            int price = (int)(item.get("price"));
 
-            //  インテントクラスを使って次の画面に情報を渡す
-            //  インテント生成時に、今の画面、次の画面の順で引数を渡す
-            Intent intent = new Intent(MainActivity.this,MenuThanksActivity.class);
-            intent.putExtra("menuName",name);
-            //  表示(MenuThanksActivity側でString型で受け取っているので、String型にしている
-            intent.putExtra("menuPrice",price + "円");
-
-            //  画面遷移
-            startActivity(intent);
+            order(item);
         }
+    }
+
+    //  注文確定画面へintentを使用してデータを渡しながら遷移する
+    private void order(Map<String,Object> item){
+        String name = (String)item.get("name");
+        //  priceはintなので注意
+        int price = (int)(item.get("price"));
+
+        //  インテントクラスを使って次の画面に情報を渡す
+        //  インテント生成時に、今の画面、次の画面の順で引数を渡す
+        Intent intent = new Intent(MainActivity.this,MenuThanksActivity.class);
+        intent.putExtra("menuName",name);
+        //  表示(MenuThanksActivity側でString型で受け取っているので、String型にしている
+        intent.putExtra("menuPrice",price + "円");
+
+        //  画面遷移
+        startActivity(intent);
     }
 
     //  オプションメニューをアクションバーに表示する
@@ -137,6 +148,22 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    //  コンテキストメニューを生成する
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        //  親クラスのメソッド呼び出しを最初に行う必要がある
+        super.onCreateContextMenu(menu,v,menuInfo);
+
+        MenuInflater inflater = getMenuInflater();
+
+        //  コンテキストメニューに自作の.xmlをインフレート
+        inflater.inflate(R.menu.menu_context_menu_list,menu);
+
+        //  コンテキストメニューのタイトルを設定
+        menu.setHeaderTitle(R.string.menu_list_context_header);
+    }
+
+    //  オプションメニューのコンテンツが選択されたときに発火する
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         //  戻り値 : オプションメニューの選択時の処理を行った場合 = true
@@ -156,6 +183,34 @@ public class MainActivity extends AppCompatActivity {
             default:
                 //  親クラスの結果をそのまま流す
                 returnVal = super.onOptionsItemSelected(item);
+                break;
+        }
+
+        return returnVal;
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        boolean returnVal = true;
+
+        //  ListViewで何が選択されたのかを取得
+        //  長押しされたコンテンツの情報を取得
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        int listPosition = info.position;
+        Map<String,Object> menu = (Map<String, Object>) m_LvMenu.getItemAtPosition(listPosition);
+
+        //  コンテキストメニューで選択されたボタンによって処理を分岐
+        int id = item.getItemId();
+        switch (id){
+            case R.id.menuListContextDesc:  // 説明
+                Toast.makeText(MainActivity.this,(String)menu.get("desc"),Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.menuListContextOrder: // 注文
+                order(menu);
+                break;
+            default:
+                returnVal = super.onContextItemSelected(item);
                 break;
         }
 
