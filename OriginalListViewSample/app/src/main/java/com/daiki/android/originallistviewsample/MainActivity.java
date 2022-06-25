@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -112,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+            @SuppressWarnings("unchecked")
             Map<String,Object> item = (Map<String,Object>)parent.getItemAtPosition(position);
 
             order(item);
@@ -122,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
     private void order(Map<String,Object> item){
         String name = (String)item.get("name");
         //  priceはintなので注意
-        int price = (int)(item.get("price"));
+        Integer price = (Integer)(item.get("price"));
+
 
         //  インテントクラスを使って次の画面に情報を渡す
         //  インテント生成時に、今の画面、次の画面の順で引数を渡す
@@ -159,16 +160,14 @@ public class MainActivity extends AppCompatActivity {
         //  どの項目を選択したかを取得
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
         int listPosition = info.position;
+
+        @SuppressWarnings("unchecked")
         Map<String,Object> item = (Map<String, Object>) m_LvMenu.getItemAtPosition(listPosition);
 
-        switch ((String)item.get("name")){
-            case "ポークカレー":
-                inflater.inflate(R.menu.menu_context_spetial,menu);
-                break;
-            default:
-                //  コンテキストメニューに自作の.xmlをインフレート
-                inflater.inflate(R.menu.menu_context_menu_list,menu);
-                break;
+        if ("ポークカレー".equals((String) item.get("name"))) {
+            inflater.inflate(R.menu.menu_context_spetial, menu);
+        } else {//  コンテキストメニューに自作の.xmlをインフレート
+            inflater.inflate(R.menu.menu_context_menu_list, menu);
         }
 
         //  コンテキストメニューのタイトルを設定
@@ -185,18 +184,12 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
 
         //  IDの値による処理の分岐
-        switch (itemId){
-            case R.id.menuListOptionTeishoku:
-                setListViewData(createMenuTeisyokuList());
-                break;
-            case R.id.menuListOptionCurry:
-                setListViewData(createMenuCurryList());
-                break;
-            default:
-                //  親クラスの結果をそのまま流す
-                returnVal = super.onOptionsItemSelected(item);
-                break;
-        }
+        if(itemId == R.id.menuListOptionTeishoku)
+            setListViewData(createMenuTeisyokuList());
+        else if(itemId == R.id.menuListOptionCurry)
+            setListViewData(createMenuCurryList());
+        else
+            returnVal = super.onOptionsItemSelected(item); //  親クラスの結果をそのまま流す
 
         return returnVal;
     }
@@ -210,26 +203,22 @@ public class MainActivity extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
         int listPosition = info.position;
+        @SuppressWarnings("unchecked")
         Map<String,Object> menu = (Map<String, Object>) m_LvMenu.getItemAtPosition(listPosition);
 
         //  コンテキストメニューで選択されたボタンによって処理を分岐
         int id = item.getItemId();
-        switch (id){
-            case R.id.menuListContextDesc:  // 説明
-                Toast.makeText(MainActivity.this,(String)menu.get("desc"),Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.menuListContextOrder: // 注文
-                order(menu);
-                break;
-            case R.id.special:  //  ポークカレー用オプション(menu_context_spetial)
-                Toast.makeText(
-                        MainActivity.this,
-                        "スペシャルオプションを選択してくれてありがとう。",
-                        Toast.LENGTH_SHORT).show();
-            default:
-                returnVal = super.onContextItemSelected(item);
-                break;
-        }
+        if (id == R.id.menuListContextDesc)  // 説明
+            Toast.makeText(MainActivity.this,(String)menu.get("desc"),Toast.LENGTH_SHORT).show();
+        else if(id == R.id.menuListContextOrder) // 注文
+            order(menu);
+        else if(id ==  R.id.special)  //  ポークカレー用オプション(menu_context_special)
+            Toast.makeText(
+                    MainActivity.this,
+                    "スペシャルオプションを選択してくれてありがとう。",
+                    Toast.LENGTH_SHORT).show();
+        else
+            returnVal = super.onContextItemSelected(item);
 
         return returnVal;
     }

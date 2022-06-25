@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 
 public class MenuThanksActivity extends AppCompatActivity {
@@ -37,7 +36,8 @@ public class MenuThanksActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
 
         //  アクションバーの戻るメニューを有効に設定(xmlの記述は不要)
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        if(actionBar != null)
+            actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
