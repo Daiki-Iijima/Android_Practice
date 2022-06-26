@@ -1,13 +1,18 @@
 package com.djima.dev.fragmentsample;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
@@ -18,11 +23,16 @@ import java.util.Map;
 
 //  生成時はいろいろな記述があったが、消しても問題ないらしいので、いいたん消去してる
 public class MenuListFragment extends Fragment {
+
+    //  端末が大画面かのフラグ
+    private boolean m_IsLayoutXLarge = true;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        //  このフラグメントがどのアクティビティオブジェクト上で表示されているわからないので、アクティビティを動的に取得
+        //  このフラグメントがどのアクティビティオブジェクト上で表示されているわからないので、
+        //  アクティビティを動的に取得
         Activity parentActivity = getActivity();
 
         //  使用する.xml(レイアウトファイル)をインフレート
@@ -55,6 +65,67 @@ public class MenuListFragment extends Fragment {
 
         lvView.setAdapter(adapter);
 
+        //  リストビュー内のアイテムタップ時の処理
+        lvView.setOnItemClickListener(new ItemClickListener());
+
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        //  レイアウト情報が生成され終わっている必要があるので、onCreateViewのあとの処理で判定をする
+        Activity parentActivity = getActivity();
+        View menuThanksFrame = parentActivity.findViewById(R.id.frameMenuThanks);
+        //  画面サイズが大きい場合は、xlargeのactivity_main.xmlが使用されるので、frameMenuThanksが存在する
+        if(menuThanksFrame == null){
+            //  なければ、タブレットではない
+            m_IsLayoutXLarge = false;
+        }
+    }
+
+    private class ItemClickListener implements AdapterView.OnItemClickListener{
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            Activity parentActivity = getActivity();
+
+            //  選択されたコンテンツを取得
+            Map<String,String> item = (Map<String,String>)adapterView.getItemAtPosition(i);
+            String name = item.get("name");
+            String price = item.get("price");
+
+            //  タブレットの場合
+            if(m_IsLayoutXLarge) {
+                //  Bundleオブジェクトを使用してデータを渡す
+                Bundle bundle = new Bundle();
+
+                bundle.putString("menuName",name);
+                bundle.putString("menuPrice",price);
+
+                //  フラグメントマネージャーの取得
+                FragmentManager manager = getFragmentManager();
+                //  トランザクションの開始
+                //  トランザクション : 一連の処理
+                FragmentTransaction transaction = manager.beginTransaction();
+                //  表示するFragmentを生成
+                MenuThanksFragment menuThanksFragment = new MenuThanksFragment();
+                //  渡すデータを設定
+                menuThanksFragment.setArguments(bundle);
+                //  すでにFragmentが存在している場合もあるので、置き換え処理をする
+                transaction.replace(R.id.frameMenuThanks,menuThanksFragment);
+                //  commitメソッドを呼ぶことで、transactionの処理が実行される。
+                transaction.commit();
+            }else { //  スマホの場合
+                //  遷移のためのIntentを作成(遷移元、遷移先)
+                Intent intent = new Intent(parentActivity, MenuThanksActivity.class);
+
+                intent.putExtra("menuName", name);
+                intent.putExtra("menuPrice", price);
+
+                //  画面遷移
+                startActivity(intent);
+            }
+        }
     }
 }

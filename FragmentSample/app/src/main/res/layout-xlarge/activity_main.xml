@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false">
+
+    <fragment
+        android:id="@+id/fragmentMenuList"
+        android:name="com.djima.dev.fragmentsample.MenuListFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.4"/>
+
+    <!-- スマホサイズのfragment_menu_thanksを表示する領域 -->
+    <FrameLayout
+        android:id="@+id/frameMenuThanks"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="50dp"
+        android:layout_weight="0.6"
+        android:background="?android:attr/detailsElementBackground"/>
+
+</LinearLayout>
