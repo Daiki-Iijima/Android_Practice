@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -72,11 +73,16 @@ public class MenuListFragment extends Fragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        //  レイアウト情報が生成され終わっている必要があるので、onCreateViewのあとの処理で判定をする
+        //  Activityの状態に依存する(frameMenuThanksがない場合がある)ので、onViewCreatedで判定する
         Activity parentActivity = getActivity();
+
+        if(parentActivity == null){
+            return;
+        }
+
         View menuThanksFrame = parentActivity.findViewById(R.id.frameMenuThanks);
         //  画面サイズが大きい場合は、xlargeのactivity_main.xmlが使用されるので、frameMenuThanksが存在する
         if(menuThanksFrame == null){
@@ -91,6 +97,7 @@ public class MenuListFragment extends Fragment {
             Activity parentActivity = getActivity();
 
             //  選択されたコンテンツを取得
+            @SuppressWarnings("unchecked")
             Map<String,String> item = (Map<String,String>)adapterView.getItemAtPosition(i);
             String name = item.get("name");
             String price = item.get("price");
@@ -104,7 +111,7 @@ public class MenuListFragment extends Fragment {
                 bundle.putString("menuPrice",price);
 
                 //  フラグメントマネージャーの取得
-                FragmentManager manager = getFragmentManager();
+                FragmentManager manager = getParentFragmentManager();
                 //  トランザクションの開始
                 //  トランザクション : 一連の処理
                 FragmentTransaction transaction = manager.beginTransaction();

@@ -15,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 public class MenuThanksFragment extends Fragment {
 
     //  端末が大画面かのフラグ
@@ -27,6 +25,10 @@ public class MenuThanksFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         Activity parentActivity = getActivity();
+
+        if(parentActivity == null){
+            return;
+        }
 
         View menuThanksFrame = parentActivity.findViewById(R.id.frameMenuThanks);
 
@@ -45,6 +47,11 @@ public class MenuThanksFragment extends Fragment {
 
         //  .xmlからビューを生成
         View view = inflater.inflate(R.layout.fragment_menu_thanks, container, false);
+
+
+        if(parentActivity == null){
+            return view;
+        }
 
         Bundle extras;
 
@@ -86,13 +93,18 @@ public class MenuThanksFragment extends Fragment {
         @Override
         public void onClick(View view) {
             if(m_IsLayoutXLarge){
-                FragmentManager manager = getFragmentManager();
+                FragmentManager manager = getParentFragmentManager();
                 FragmentTransaction transaction = manager.beginTransaction();
                 transaction.remove(MenuThanksFragment.this);
                 transaction.commit();
             }else {
                 //  フラグメントなので、表示されているアクティビティを終了させて画面遷移する必要がある
                 Activity parentActivity = getActivity();
+
+                if(parentActivity == null){
+                    return;
+                }
+
                 parentActivity.finish();
             }
         }
