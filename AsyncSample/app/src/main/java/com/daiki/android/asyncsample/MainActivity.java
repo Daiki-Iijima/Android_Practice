@@ -10,9 +10,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.inspector.StaticInspectionCompanionProvider;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String WEATHER_INFO_URL = "https://api.openweathermap.org/data/2.5/weather?lang=ja";
 
     //  APIキー
-    private static final String APP_ID = "";
+    private static String APP_ID ;
 
     private static final int TIME_OUT = 1000;
     private static final int CAN_READ_TIME = 1000;
@@ -51,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //  APIキーの取得
+        APP_ID = getString(R.string.api_key);
 
         //  表示させるデータの設定
         m_WeatherList = createCityList();
@@ -204,9 +214,9 @@ public class MainActivity extends AppCompatActivity {
         //  InputStreamをString型に変換する処理
         //  よく使われるテンプレート
         private String inputStream2String(InputStream is) throws IOException{
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             char[] b = new char[1024];
             int line;
@@ -218,11 +228,52 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //  OpenWeatherAPIから受け取ったJSONをパースして扱いやすくしたクラス
+    private class WeatherData{
+
+        private final String JSON;
+
+        public String CityName = "";
+        public String Weather = "";
+        public String Latitude = "";
+        public String Longitude = "";
+
+        public WeatherData(String json){
+            JSON = json;
+        }
+
+        public boolean parse(){
+            try{
+                //  1層目のデータを取得
+                JSONObject rootJSON = new JSONObject(JSON);
+
+                //  都市名を取得
+                CityName = rootJSON.getString("name");  //  直下にあるのでそのまま取ってこれる
+
+                //  天気を取得
+                JSONArray weatherJSONArray = rootJSON.getJSONArray("weather");
+                JSONObject weatherJSON = weatherJSONArray.getJSONObject(0);
+                Weather = weatherJSON.getString("description");
+
+                //  緯度経度を取得
+                JSONObject coordinateJSON = rootJSON.getJSONObject("coord");
+                Latitude = coordinateJSON.getString("lat");
+                Longitude = coordinateJSON.getString("lon");
+
+            }catch (JSONException ex){
+                Log.e(TAG,"JSON解析失敗",ex);
+
+                return false;
+            }
+
+            return true;
+        }
+    }
 
     //  天気情報の表示処理をUIスレッドで処理するためのクラス
     private class WeatherInfoPostExecutor implements Runnable{
 
-        private String m_Result;
+        private final String m_Result;
 
         public WeatherInfoPostExecutor(String result){
             m_Result = result;
@@ -231,8 +282,28 @@ public class MainActivity extends AppCompatActivity {
         @UiThread
         @Override
         public void run() {
-            Log.i(TAG,"天気データ取得結果");
-            Log.i(TAG,m_Result);
+
+            //  UIを取得
+            TextView tvTelop = findViewById(R.id.tvWeatherTelop);
+            TextView tvDec = findViewById(R.id.tvWeatherDesc);
+
+            //  JSONをパースして格納する自作クラスのインスタンスを生成
+            WeatherData data = new WeatherData(m_Result);
+
+            //  パースが成功したか
+            if(data.parse()){
+                //  表示する文字列を生成
+                String dec = data.CityName+"("+ data.Latitude + "," + data.Longitude +")"  + "の天気は" + data.Weather + "です";
+
+                //  テキストを表示
+                tvTelop.setText(data.CityName);
+                tvDec.setText(dec);
+            }else{
+                //  テキストを表示
+                tvTelop.setText("データを取得できませんでした");
+                tvDec.setText("データを取得できませんでした");
+            }
         }
     }
+
 }
