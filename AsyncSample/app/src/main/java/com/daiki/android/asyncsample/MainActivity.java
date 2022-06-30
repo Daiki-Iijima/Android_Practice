@@ -14,6 +14,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String WEATHER_INFO_URL = "https://api.openweathermap.org/data/2.5/weather?lang=ja";
 
     //  APIキー
-    private static final String APP_ID = "xxx";
+    private static final String APP_ID = "";
+
+    private static final int TIME_OUT = 1000;
+    private static final int CAN_READ_TIME = 1000;
 
     //  ビューに表示させるデータ
     private List<Map<String,String>> m_WeatherList;
@@ -94,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
             //  天気情報取得のためのURL生成
             String q = selectItem.get("q");
-            String urlFull = WEATHER_INFO_URL + "&q" + q + "&appid=" + APP_ID;
+            String urlFull = WEATHER_INFO_URL + "&q=" + q + "&appid=" + APP_ID;
 
             receiveWeatherInfo(urlFull);
         }
@@ -135,16 +147,92 @@ public class MainActivity extends AppCompatActivity {
         @WorkerThread
         @Override
         public void run() {
-            WeatherInfoPostExecutor postExecutor = new WeatherInfoPostExecutor();
+            //  HTTP接続を行うためのオブジェクトを宣言
+            //  HttpURLConnectionはURLConnectionの派生クラス
+            //  解放する必要があるので、try外で宣言しておく
+            HttpURLConnection con = null;
+            InputStream is = null;
+            String result = "";     //  取得結果
+
+            try{
+                //  URLオブジェクトを生成
+                URL url = new URL(m_UrlFull);
+
+                //  URLオブジェクトから、HttpURLConnectionオブジェクトを取得
+                con = (HttpURLConnection)url.openConnection();
+
+                //  タイムアウト時間の設定
+                con.setConnectTimeout(TIME_OUT);
+                //  データ取得時間の制限を設定
+                con.setReadTimeout(CAN_READ_TIME);
+
+                //  接続開始
+                //  結果が返るまでここで止まる
+                con.connect();
+
+                //  レスポンスデータを取得
+                //  この処理が動いているということは結果は何かしら帰ってきている
+                is = con.getInputStream();
+
+                //  InputStream型で受け取った結果をString型に変換
+                result = inputStream2String(is);
+
+            }catch (MalformedURLException ex){  //  URLの変換失敗
+                Log.e(TAG,"URL変換失敗",ex);
+            }catch (SocketTimeoutException ex){ //  通信のタイムアウト(setConnectTimeoutメソッドで設定した時間)
+                Log.e(TAG,"通信タイムアウト",ex);
+            }catch (IOException ex) {     //  通信失敗
+                Log.e(TAG,"通信失敗",ex);
+            }finally {  //  開放処理
+                if(con != null){
+                    con.disconnect();
+                }
+
+                if(is != null){
+                    try {
+                        is.close();
+                    }catch (IOException ex){
+                        Log.e(TAG,"InputStreamの解放失敗");
+                    }
+                }
+            }
+
+            WeatherInfoPostExecutor postExecutor = new WeatherInfoPostExecutor(result);
             m_UIThreadHandler.post(postExecutor);
+        }
+
+        //  InputStreamをString型に変換する処理
+        //  よく使われるテンプレート
+        private String inputStream2String(InputStream is) throws IOException{
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+
+            StringBuffer sb = new StringBuffer();
+
+            char[] b = new char[1024];
+            int line;
+            while (0 <= (line = reader.read(b))){
+                sb.append(b,0,line);
+            }
+
+            return sb.toString();
         }
     }
 
+
     //  天気情報の表示処理をUIスレッドで処理するためのクラス
     private class WeatherInfoPostExecutor implements Runnable{
+
+        private String m_Result;
+
+        public WeatherInfoPostExecutor(String result){
+            m_Result = result;
+        }
+
         @UiThread
         @Override
         public void run() {
+            Log.i(TAG,"天気データ取得結果");
+            Log.i(TAG,m_Result);
         }
     }
 }
