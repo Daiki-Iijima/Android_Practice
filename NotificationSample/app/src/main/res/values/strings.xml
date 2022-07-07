@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">通知サンプル</string>
     <string name="notification_channel_name">テスト通知チャネル</string>
+    <string name="notification_service_channel_name">テスト通知チャネル(サービス)</string>
     <string name="notification_title">テスト通知</string>
     <string name="notification_text">これはテスト通知です。</string>
 </resources>

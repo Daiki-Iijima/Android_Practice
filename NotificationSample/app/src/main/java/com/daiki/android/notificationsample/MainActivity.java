@@ -12,6 +12,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String CHANNEL_ID = "test_notification_channel";
@@ -28,7 +31,10 @@ public class MainActivity extends AppCompatActivity {
         }else {
 
             //  チェネルを作成
-            NotificationChannel channel = CreateChannel();
+            NotificationChannel channel = NotificationUtil.CreateChannel(
+                    CHANNEL_ID,
+                    getString(R.string.notification_channel_name)
+            );
 
             //  システムから通知マネージャーを取得
             NotificationManager manager = getSystemService(NotificationManager.class);
@@ -49,10 +55,11 @@ public class MainActivity extends AppCompatActivity {
             builder.setContentText(getString(R.string.notification_text));
 
             //  通知タップ時の処理
-            Intent intent = new Intent(MainActivity.this, MainActivity.class);
-            intent.putExtra("fromNotification", true);
-            PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 1, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-            builder.setContentIntent(pendingIntent);
+            //  PendingIntent : 通知がタップされたら起動するActivity
+            //Intent intent = new Intent(MainActivity.this, MainActivity.class);
+            //intent.putExtra("fromNotification", true);
+            //PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 1, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+            //builder.setContentIntent(pendingIntent);
 
             //  通知オブジェクトを生成
             Notification notification = builder.build();
@@ -61,28 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
             //  通知を発火
             //  100 : NotificationのIDでアプリ内で一意になるようにする
-            managerCompat.notify(100, notification);
+            managerCompat.notify(1000, notification);
+
+            //  サービスを開始
+            Intent serviceIntent = new Intent(MainActivity.this,TestService.class);
+            startService(serviceIntent);
+
         }
-    }
-
-    private NotificationChannel CreateChannel(){
-        //  通知チャネル名
-        String titleName = getString(R.string.notification_channel_name);
-
-        //  通知チャネルの優先度
-        //  DEFAULT : 標準
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-
-        //  通知チャネルを生成
-        NotificationChannel channel = new NotificationChannel(CHANNEL_ID,titleName,importance);
-
-        //  バイブレーションするか
-        channel.enableVibration(true);
-
-        //  ロック画面で表示するか
-        //  画面ロック中に通知が来たときだけ表示される?いまの処理では表示されない
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-
-        return channel;
     }
 }
