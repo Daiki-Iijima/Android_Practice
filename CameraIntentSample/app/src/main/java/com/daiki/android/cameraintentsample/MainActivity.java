@@ -1,6 +1,7 @@
 package com.daiki.android.cameraintentsample;
 
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -17,41 +18,53 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageView imageView = findViewById(R.id.ivCamera);
-        imageView.setOnClickListener(new OnCameraImage());
-    }
+        //  UIからImageViewを取得
+        ImageView ivCamera = findViewById(R.id.ivCamera);
 
-    //  startActivityForResultメソッドで起動したActivityの結果
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        //  親クラスのメソッド呼び出し
-        super.onActivityResult(requestCode, resultCode, data);
+        //  実行結果の処理を格納したランチャーを生成
+        //  requestCodeが必要なくなった
+        //  onCreateで作成しておく必要があるっぽい
+        ActivityResultLauncher<Intent> activityResultLauncher= registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> { //  結果
 
-        //  requestCode : startActivityForResultで引数に指定した数値
-        //  resultCode : RESULT_OK = 処理成功,RESULT_CANCELED = 処理キャンセル
-        if( requestCode == 200 && resultCode == RESULT_OK){
+                    //  キャンセルされていたら処理を停止
+                    if(result.getResultCode() == RESULT_CANCELED) {return;}
 
-            //  撮影された画像のビットマップデータを取得
-            Bitmap bitmap = data.getParcelableExtra("data");
+                    //  データを取得してnullチェック
+                    Intent resultDataIntent = result.getData();
+                    if(resultDataIntent == null){ return; }
 
-            //  取得した画像の設定
-            //  この方法だと、サムネイルサイズの低画質の画像しか取得できない
-            //  高画質画像を取得するには、ストレージを経由する必要がある
-            ImageView ivCamera = findViewById(R.id.ivCamera);
-            ivCamera.setImageBitmap(bitmap);
-        }
+                    //  撮影された画像のビットマップデータを取得
+                    Bitmap bitmap = resultDataIntent.getParcelableExtra("data");
+
+                    //  取得した画像の設定
+                    //  この方法だと、サムネイルサイズの低画質の画像しか取得できない
+                    //  高画質画像を取得するには、ストレージを経由する必要がある
+                    ivCamera.setImageBitmap(bitmap);
+                }
+        );
+
+        //  クリック時のイベントを設定
+        ivCamera.setOnClickListener(new OnCameraImage(activityResultLauncher));
     }
 
     //  ImageViewがクリックされたとき
     //  CameraImageはxmlの方でカメラの画像をImageViewに設定しているので
-    private class OnCameraImage implements View.OnClickListener{
+    private static class OnCameraImage implements View.OnClickListener{
+
+        ActivityResultLauncher<Intent> mLauncher;
+
+        public OnCameraImage(ActivityResultLauncher<Intent> launcher){
+            mLauncher = launcher;
+        }
+
         @Override
         public void onClick(View view) {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
             //  アクティビティを起動
-            //  startActivityForResult : 別のActivityを起動するが、戻ってくる場合に使用する
-            //  onActivityResultメソッドで結果を確認できる
-            startActivityForResult(intent,200);
+            mLauncher.launch(intent);
         }
     }
 }
