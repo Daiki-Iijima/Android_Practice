@@ -6,6 +6,8 @@ import androidx.appcompat.widget.Toolbar;
 import android.graphics.Color;
 import android.os.Bundle;
 
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -15,17 +17,19 @@ public class MainActivity extends AppCompatActivity {
 
         //  xmlで追加したToolbarの取得
         Toolbar toolbar = findViewById(R.id.toolbar);
-        //  ツールバーにアイテムを追加
-        //  ロゴ
+        //  ツールバーロゴを設定
         toolbar.setLogo(R.mipmap.ic_launcher);
-        //  タイトル文字列と色を設定
-        toolbar.setTitle(R.string.toolbar_title);
-        toolbar.setTitleTextColor(Color.WHITE);
-        //  サブタイトルの文字列と色を設定
-        toolbar.setSubtitle(R.string.toolbar_subtitle);
-        toolbar.setSubtitleTextColor(Color.LTGRAY);
-
         //  アクションバーにツールバーを設定
         setSupportActionBar(toolbar);
+
+        CollapsingToolbarLayout toolbarLayout = findViewById(R.id.toolbarLayout);
+        //  タイトル文字列を設定
+        toolbarLayout.setTitle(getString(R.string.toolbar_title));
+        //  タイトル文字列の色を設定
+        //  普通サイズ時
+        toolbarLayout.setExpandedTitleColor(Color.WHITE);
+        //  縮小サイズ時
+        toolbarLayout.setCollapsedTitleTextColor(Color.LTGRAY);
+
     }
 }
