@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,6 +83,9 @@ public class MenuListFragment extends Fragment {
         if(parentActivity == null){
             return;
         }
+
+        int value =  getResources().getDisplayMetrics().widthPixels;
+        Log.i("size",String.format("%d",value));
 
         View menuThanksFrame = parentActivity.findViewById(R.id.frameMenuThanks);
         //  画面サイズが大きい場合は、xlargeのactivity_main.xmlが使用されるので、frameMenuThanksが存在する
