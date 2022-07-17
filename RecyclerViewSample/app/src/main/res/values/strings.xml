@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">リサイクラービューサンプル</string>
+    <string name="toolbar_title">Recycle</string>
+    <string name="tv_menu_unit">円</string>
+    <string name="msg_header">ご注文の定食</string>
+
+    <string-array name="menu">
+        <item>テスト1</item>
+        <item>テスト2</item>
+        <item>テスト3</item>
+        <item>テスト4</item>
+        <item>テスト5</item>
+    </string-array>
+</resources>
