@@ -7,6 +7,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!--    layout_anchor : CoordinatorLayout配下の画面部品のidを指定することでその部品の上に表示する-->
+    <!--      -  layout_anchorGravity : 部品の上で配置する位置-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        app:layout_anchor="@id/appbar"
+        app:layout_anchorGravity="bottom|end"
+        app:srcCompat="@android:drawable/ic_dialog_email"/>
+    <!--    layout_anchor : CoordinatorLayout配下の画面部品のidを指定することでその部品の上に表示する-->
+    <!--      -  layout_anchorGravity : 部品の上で配置する位置-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabEmail1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        app:layout_anchor="@id/appbar"
+        app:layout_anchorGravity="bottom|center"
+        app:srcCompat="@android:drawable/ic_input_add"/>
+
     <!--    AppBarLayout : "縦並び"のLinearLayoutをAppBar用に拡張したウィジェット-->
     <!--    app:layout_scrollFlags : AppBarLayout内の要素にスクロール時のオプションを設定できる-->
     <com.google.android.material.appbar.AppBarLayout
