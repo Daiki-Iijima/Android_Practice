@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/test1"
-        android:icon="@android:drawable/ic_menu_delete"
-        android:title="test1"
-        app:showAsAction="ifRoom" />
 
+<!--    追加ボタン(AlertDialog)-->
     <item
-        android:id="@+id/test2"
-        android:icon="@android:drawable/ic_btn_speak_now"
-        android:title="test2"
+        android:id="@+id/btnAdd"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/menu_task_add"
         app:showAsAction="ifRoom" />
-
+    <!-- 追加ボタン(Activity to Dialog) -->
     <item
-        android:id="@+id/test3"
-        android:icon="@android:drawable/ic_btn_speak_now"
-        android:title="test3"
-        app:showAsAction="never" />
+        android:id="@+id/btnAdd2"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="@string/menu_task_add"
+        app:showAsAction="ifRoom"/>
 
 </menu>

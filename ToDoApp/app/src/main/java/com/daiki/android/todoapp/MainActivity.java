@@ -1,9 +1,13 @@
 package com.daiki.android.todoapp;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,9 +15,22 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private ListView mListView;
+
+    private List<String> mTaskList = new ArrayList<>();
+
+    private ActivityResultLauncher<Intent> mResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,18 +41,48 @@ public class MainActivity extends AppCompatActivity {
         bar.setTitle("タイトル");
         bar.setSubtitle("サブタイトル");
         bar.setDisplayShowHomeEnabled(true);
-        bar.setIcon(android.R.drawable.ic_media_next);
 
-        bar.setCustomView(R.layout.sample_my_view);
-        bar.setDisplayShowCustomEnabled(true);
+        mListView = findViewById(R.id.lvTodo);
+        mListView.setOnItemClickListener(new OnListViewItemClickListener());
 
-        Button btn = findViewById(R.id.btn);
-        btn.setOnClickListener(new OnClickButton());
+        updateListView(mTaskList);
 
-        //  カスタムビューの部品を取得
-        View v = bar.getCustomView();
-        Button btn1 = v.findViewById(R.id.btn1);
-        btn1.setOnClickListener(new OnClickButton());
+        //  このアクティビティに戻ってきたときの処理を記述
+        mResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    //  キャンセルされていたら処理を停止
+                    if(result.getResultCode() == RESULT_CANCELED) {return;}
+
+                    if(result.getResultCode() == RESULT_OK){
+                        Intent intent = result.getData();
+                        String task = intent.getStringExtra("task");
+                        //  リストを更新
+                        addListView(task);
+                    }
+                }
+        );
+    }
+
+    private void addListView(String taskName){
+        mTaskList.add(taskName);
+        updateListView(mTaskList);
+    }
+
+    private void updateListView(List<String> data){
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                MainActivity.this,
+                android.R.layout.simple_list_item_1,
+                data);
+
+        mListView.setAdapter(adapter);
+    }
+
+    private class OnListViewItemClickListener implements AdapterView.OnItemClickListener{
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            String taskName = (String)adapterView.getItemAtPosition(i);
+        }
     }
 
     @Override
@@ -55,28 +102,28 @@ public class MainActivity extends AppCompatActivity {
         //  レイアウトファイルで設定してあるIDを取得できるので、ここで分岐する
         int id = item.getItemId();
 
-        if(id == R.id.test1){
-            Log.i("MainActivity","テストが押されました");
+        //  タスクの追加
+        if(id == R.id.btnAdd){
+            TaskAddDialogFragment dialog = new TaskAddDialogFragment(new TaskAddListener() {
+                @Override
+                public void AddTask(String taskName) {
+
+                    mTaskList.add(taskName);
+
+                    updateListView(mTaskList);
+                }
+            });
+
+            //  ダイアログ表示
+            dialog.show(getSupportFragmentManager(),"識別子");
+        }
+
+        if(id == R.id.btnAdd2){
+            Intent intent = new Intent(MainActivity.this,DialogActivity.class);
+
+            mResultLauncher.launch(intent);
         }
 
         return true;
-    }
-
-
-
-    private class OnClickButton implements View .OnClickListener{
-        @Override
-        public void onClick(View view) {
-//                カスタムビューのボタンだった場合
-            if(R.id.btn1 == view.getId()){
-                Log.i("MainActivity","カスタムビューのボタンが押された");
-            }else {
-                Intent intent = new Intent(MainActivity.this, MainActivity2.class);
-
-                startActivity(intent);
-
-                overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
-            }
-        }
     }
 }
