@@ -1,9 +1,11 @@
 package com.daiki.android.todoapp;
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextPaint;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         mListView = findViewById(R.id.lvTodo);
         mListView.setOnItemClickListener(new OnItemSelectListener());
+        //  コンテキストメニューを出せるように設定
+        registerForContextMenu(mListView);
 
         mTaskList.add("テスト1");
         mTaskList.add("テスト2");
@@ -62,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mListView.setAdapter(adapter);
     }
 
-    private static class OnItemSelectListener implements AdapterView .OnItemClickListener{
+    private class OnItemSelectListener implements AdapterView .OnItemClickListener{
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             TextView textView = view.findViewById(android.R.id.text1);
@@ -71,7 +75,15 @@ public class MainActivity extends AppCompatActivity {
             paint.setAntiAlias(true);
 
             //  テキストの色を薄くする
-            textView.setTextColor(Color.LTGRAY);
+            int currentNightMode = MainActivity.this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            switch (currentNightMode) {
+                case Configuration.UI_MODE_NIGHT_NO:
+                    textView.setTextColor(Color.LTGRAY);
+                    break;
+                case Configuration.UI_MODE_NIGHT_YES:
+                    textView.setTextColor(Color.GRAY);
+                    break;
+            }
 
             //  再描画
             //  これを入れないと取り消し線がつかない場合があった
@@ -80,6 +92,51 @@ public class MainActivity extends AppCompatActivity {
             //  取り消し線消去
             //paint.setFlags(textView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.context,menu);
+
+        menu.setHeaderTitle("タスクの操作");
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        boolean returnVal = true;
+
+            if(item.getItemId() == R.id.uncheck) {
+                AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+                View v = info.targetView;
+                TextView tv = v.findViewById(android.R.id.text1);
+                TextPaint paint = tv.getPaint();
+                //  取り消し線消去
+                paint.setFlags(tv.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                //  テキストの色を戻す
+                int currentNightMode = MainActivity.this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                switch (currentNightMode) {
+                    case Configuration.UI_MODE_NIGHT_NO:
+                        tv.setTextColor(Color.BLACK);
+                        break;
+                    case Configuration.UI_MODE_NIGHT_YES:
+                        tv.setTextColor(Color.WHITE);
+                        break;
+                }
+                //  再描画
+                //  これを入れないと取り消し線がつかない場合があった
+                tv.invalidate();
+            }else if(item.getItemId() == R.id.delete) {
+                AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+                mTaskList.remove(info.position);
+                updateListView(mTaskList);
+            }else {
+                returnVal = super.onContextItemSelected(item);
+            }
+
+        return returnVal;
     }
 
     @Override

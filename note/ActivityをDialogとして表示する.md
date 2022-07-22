@@ -8,8 +8,21 @@
 
 AndroidManifest.xmlに追加するActivityのスタイルを`@style/customDialogTheme`にすることで、ActivityをDialogのように表示することができる
 
+### customDialogThemeを定義する
+
+styles.xmlに定義する必要がある。(nightも同様に)
+
 ```xml
-<activity android:name=".DialogActivity" android:theme="@style/customDialogTheme" android:exported="false" />
+<!--    Activityをダイアログにする場合に設定するスタイル-->
+    <style name="customDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="windowNoTitle">true</item>
+    </style>
+```
+
+### AndroidManifestを修正する
+
+```xml
+<activity android:name=".作成したアクティビティ名" android:theme="@style/customDialogTheme" android:exported="false" />
 ```
 
 ## 結果の受け取り方
