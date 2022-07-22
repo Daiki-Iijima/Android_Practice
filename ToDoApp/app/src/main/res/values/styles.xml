@@ -4,4 +4,10 @@
         <item name="android:background">@color/gray_400</item>
         <item name="exampleColor">@color/light_blue_400</item>
     </style>
+
+<!--    Activityをダイアログにする場合に設定するスタイル-->
+    <style name="customDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="windowNoTitle">true</item>
+    </style>
+
 </resources>

@@ -22,6 +22,8 @@ public class DialogActivity extends AppCompatActivity {
         btOk.setOnClickListener(new OnClickButtonListener());
         Button btCancel = findViewById(R.id.btCancel);
         btCancel.setOnClickListener(new OnClickButtonListener());
+
+
     }
 
     private class OnClickButtonListener implements View.OnClickListener{
