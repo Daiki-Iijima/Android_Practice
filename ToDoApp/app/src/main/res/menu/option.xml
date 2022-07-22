@@ -2,17 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-<!--    追加ボタン(AlertDialog)-->
     <item
-        android:id="@+id/btnAdd"
+        android:id="@+id/btAdd"
         android:icon="@android:drawable/ic_input_add"
         android:title="@string/menu_task_add"
         app:showAsAction="ifRoom" />
-    <!-- 追加ボタン(Activity to Dialog) -->
-    <item
-        android:id="@+id/btnAdd2"
-        android:icon="@android:drawable/ic_menu_add"
-        android:title="@string/menu_task_add"
-        app:showAsAction="ifRoom"/>
 
 </menu>
