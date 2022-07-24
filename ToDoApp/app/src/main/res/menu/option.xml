@@ -8,4 +8,16 @@
         android:title="@string/menu_task_add"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/btLoopAdd"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="指定個追加"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/btAllDelete"
+        android:icon="@android:drawable/ic_delete"
+        android:title="すべてのタスクを消去"
+        app:showAsAction="never" />
+
 </menu>

@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -95,18 +96,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateListView(List<TaskData> data){
 
-        String[] from = new String[]{"title","id","isCompleted"};
-        int[] to = new int[]{R.id.tvTitle,R.id.tvId,R.id.cbIsCompleted};
-
         List<Map<String,String>> setData = new ArrayList<>();
 
-        for(int i = 0; i<data.size(); i++)
-        {
-            HashMap<String,String> tmpData = new HashMap<>();
-            tmpData.put("title",data.get(i).getId());   //  バインドするときに指標にするために
-            tmpData.put("id",data.get(i).getId());   //  バインドするときに指標にするために
-            tmpData.put("isCompleted",(String.format("%s",data.get(i).isIsCompleted())));   //  バインドするときに指標にするために
-            setData.add(tmpData);
+        String[] from = new String[]{"title", "id", "isCompleted"};
+        int[] to = new int[]{R.id.tvTitle, R.id.tvId, R.id.cbIsCompleted};
+
+        if(data != null){
+            for (int i = 0; i < data.size(); i++) {
+                HashMap<String, String> tmpData = new HashMap<>();
+                tmpData.put("title", data.get(i).getId());   //  バインドするときに指標にするために
+                tmpData.put("id", data.get(i).getId());   //  バインドするときに指標にするために
+                tmpData.put("isCompleted", (String.format("%s", data.get(i).isIsCompleted())));   //  バインドするときに指標にするために
+                setData.add(tmpData);
+            }
+        }else{
+            //  ファイルを消去
+            deleteFile("TaskData.json");
+            //  タスクをすべて消去
+            mTaskList.TaskList = new ArrayList<>();
         }
 
         SimpleAdapter simpleAdapter = new SimpleAdapter(
@@ -199,10 +206,22 @@ public class MainActivity extends AppCompatActivity {
 
             if(view instanceof CheckBox) {
                 CheckBox cb = (CheckBox)view;
+
                 if (cb.getId() == R.id.cbIsCompleted) {
-                    if(Objects.equals(s, "true")){
-                        cb.setChecked(true);
-                        ViewGroup vg = (ViewGroup)cb.getParent();
+                    ViewGroup vg = (ViewGroup)cb.getParent();
+                    boolean isCompleted =false;
+                    for(int i = 0;i < vg.getChildCount();i++) {
+                        View v = vg.getChildAt(i);
+                        if(v.getId() == R.id.tvId){
+                            TextView tvId = (TextView)v;
+                            String id= tvId.getText().toString();
+                            TaskData data = (TaskData) mTaskList.TaskList.stream().filter(f -> f.getId().equals(id)).toArray()[0];
+                            isCompleted = data.isIsCompleted();
+                        }
+                    }
+
+                    cb.setChecked(isCompleted);
+                    if(isCompleted){
                         for(int i = 0;i < vg.getChildCount();i++) {
                             View v = vg.getChildAt(i);
                             if (v instanceof TextView) {
@@ -226,6 +245,32 @@ public class MainActivity extends AppCompatActivity {
                                     //  再描画
                                     //  これを入れないと取り消し線がつかない場合があった
                                     textView.invalidate();
+                                }
+                            }
+                        }
+                    }else {
+                        for (int i = 0; i < vg.getChildCount(); i++) {
+                            View v = vg.getChildAt(i);
+
+                            if (v instanceof TextView) {
+                                if (v.getId() == R.id.tvTitle) {
+                                    TextView tv = v.findViewById(R.id.tvTitle);
+                                    TextPaint paint = tv.getPaint();
+                                    //  取り消し線消去
+                                    paint.setFlags(tv.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                                    //  テキストの色を戻す
+                                    int currentNightMode = MainActivity.this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                                    switch (currentNightMode) {
+                                        case Configuration.UI_MODE_NIGHT_NO:
+                                            tv.setTextColor(Color.BLACK);
+                                            break;
+                                        case Configuration.UI_MODE_NIGHT_YES:
+                                            tv.setTextColor(Color.WHITE);
+                                            break;
+                                    }
+                                    //  再描画
+                                    //  これを入れないと取り消し線がつかない場合があった
+                                    tv.invalidate();
                                 }
                             }
                         }
@@ -355,6 +400,18 @@ public class MainActivity extends AppCompatActivity {
 
             //  ダイアログ表示
             dialog.show(getSupportFragmentManager(),"識別子");
+        }
+
+        if(id == R.id.btLoopAdd){
+            for(int i = 1;i < 711;i++) {
+                addListView(String.format("%d",i));
+            }
+        }
+
+        if(id == R.id.btAllDelete){
+
+            updateListView(null);
+
         }
 
         return true;
