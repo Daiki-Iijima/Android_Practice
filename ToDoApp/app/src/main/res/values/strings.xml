@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TODO</string>
+    <string name="app_name">Simple Todo</string>
     <string name="dialog_title">タスクを追加する</string>
     <string name="menu_task_add">タスク追加</string>
     <string name="dialog_task_add">追加</string>

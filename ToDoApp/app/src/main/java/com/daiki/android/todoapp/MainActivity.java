@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
         ActionBar bar = getSupportActionBar();
         if(bar == null) { return ;}
-        bar.setTitle("My ToDo");
+        bar.setTitle(R.string.app_name);
         bar.setDisplayShowHomeEnabled(true);
 
         mListView = findViewById(R.id.lvTodo);
