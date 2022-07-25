@@ -113,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
                 } else if (id == R.id.tvId) {
                     textView.setText(s);
                 }
-
             }
 
             if(view instanceof CheckBox) {

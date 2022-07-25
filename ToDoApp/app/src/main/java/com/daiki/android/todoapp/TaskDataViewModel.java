@@ -1,8 +1,6 @@
 package com.daiki.android.todoapp;
 
 import android.content.Context;
-import android.util.Log;
-import android.view.inspector.StaticInspectionCompanionProvider;
 
 import androidx.lifecycle.ViewModel;
 
@@ -17,12 +15,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TaskDataViewModel extends ViewModel {
-    public List<TaskData> TaskList = new ArrayList<>();
+    public List<TaskData> TaskList;
+
+    private final static String ID = "ID";
+    private final static String TASK = "Task";
+    private final static String IS_COMPLETED = "IsCompleted";
 
     //  コンストラクタ
     //  saveFileName : データを保存するファイル名
@@ -37,7 +39,7 @@ public class TaskDataViewModel extends ViewModel {
 
     //  データのクリア
     public void deleteData(Context context,String filename){
-        context.deleteFile("TaskData.json");
+        context.deleteFile(filename);
         clearCacheData();
     }
 
@@ -61,9 +63,9 @@ public class TaskDataViewModel extends ViewModel {
             JSONObject jsonObject = new JSONObject();
             TaskData task = TaskList.get(i);
             try {
-                jsonObject.put("ID", task.getId());
-                jsonObject.put("Task", task.getTask());
-                jsonObject.put("IsCompleted", task.isIsCompleted());
+                jsonObject.put(ID, task.getId());
+                jsonObject.put(TASK, task.getTask());
+                jsonObject.put(IS_COMPLETED, task.isIsCompleted());
                 jsonArray.put(jsonObject);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -81,9 +83,9 @@ public class TaskDataViewModel extends ViewModel {
             for(int i = 0; i < jsonArray.length(); i++){
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 TaskData data = new TaskData();
-                data.setId(jsonObject.get("ID").toString());
-                data.setTask(jsonObject.get("Task").toString());
-                data.setIsCompleted((boolean)jsonObject.get("IsCompleted"));
+                data.setId(jsonObject.get(ID).toString());
+                data.setTask(jsonObject.get(TASK).toString());
+                data.setIsCompleted((boolean)jsonObject.get(IS_COMPLETED));
                 TaskList.add(data);
             }
         } catch (JSONException e) {
@@ -96,7 +98,7 @@ public class TaskDataViewModel extends ViewModel {
         OutputStream out;
         try {
             out = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(out,"UTF-8"));
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
 
             writer.append(data);
             writer.close();
@@ -115,9 +117,8 @@ public class TaskDataViewModel extends ViewModel {
         try {
             in = context.openFileInput(fileName);
 
-            BufferedReader reader= new BufferedReader(new InputStreamReader(in,"UTF-8"));
+            BufferedReader reader= new BufferedReader(new InputStreamReader(in,StandardCharsets.UTF_8));
             while( (lineBuffer = reader.readLine()) != null ){
-                Log.d("FileAccess",lineBuffer);
                 loadData.append(lineBuffer);
             }
         } catch (IOException e) {
