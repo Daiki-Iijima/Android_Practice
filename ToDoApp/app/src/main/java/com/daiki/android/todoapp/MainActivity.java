@@ -1,12 +1,10 @@
 package com.daiki.android.todoapp;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextPaint;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,23 +22,10 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,13 +33,17 @@ public class MainActivity extends AppCompatActivity {
 
     private TaskDataViewModel mTaskList;
 
+    private final static String FILE_NAME = "TaskData.json";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mTaskList = new ViewModelProvider(MainActivity.this).get(TaskDataViewModel.class);
-        mTaskList.TaskList = new ArrayList<>();
+        mTaskList.clearCacheData();
+
+        mTaskList.loadData(MainActivity.this,FILE_NAME);
 
         ActionBar bar = getSupportActionBar();
         if(bar == null) { return ;}
@@ -66,23 +55,7 @@ public class MainActivity extends AppCompatActivity {
         //  コンテキストメニューを出せるように設定
         registerForContextMenu(mListView);
 
-        //  データのロード
-        String loadData = fileInput();
-
-        try {
-            JSONArray jsonArray = new JSONArray(loadData);
-            for(int i = 0; i < jsonArray.length(); i++){
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                TaskData data = new TaskData();
-                data.setId(jsonObject.get("ID").toString());
-                data.setTask(jsonObject.get("Task").toString());
-                data.setIsCompleted((boolean)jsonObject.get("IsCompleted"));
-                mTaskList.TaskList.add(data);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
+        //  リストビューを更新
         updateListView(mTaskList.TaskList);
     }
 
@@ -110,10 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 setData.add(tmpData);
             }
         }else{
-            //  ファイルを消去
-            deleteFile("TaskData.json");
-            //  タスクをすべて消去
-            mTaskList.TaskList = new ArrayList<>();
+            mTaskList.deleteData(MainActivity.this,FILE_NAME);
         }
 
         SimpleAdapter simpleAdapter = new SimpleAdapter(
@@ -128,67 +98,9 @@ public class MainActivity extends AppCompatActivity {
 
         mListView.setAdapter(simpleAdapter);
 
-        saveJson();
+        mTaskList.saveData(MainActivity.this,FILE_NAME);
     }
 
-    private void saveJson(){
-
-        //  Jsonテスト
-        JSONArray jsonArray = new JSONArray();
-        for(int i = 0;i < mTaskList.TaskList.size();i++) {
-            JSONObject jsonObject = new JSONObject();
-            TaskData task = mTaskList.TaskList.get(i);
-            try {
-                jsonObject.put("ID", task.getId());
-                jsonObject.put("Task", task.getTask());
-                jsonObject.put("IsCompleted", task.isIsCompleted());
-                jsonArray.put(jsonObject);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //  保存
-        fileSave(jsonArray.toString());
-    }
-
-    private void fileSave(String data){
-
-        OutputStream out;
-        try {
-            out = openFileOutput("TaskData.json", Context.MODE_PRIVATE);
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(out,"UTF-8"));
-
-            writer.append(data);
-            writer.close();
-        } catch (IOException e) {
-            // TODO 自動生成された catch ブロック
-            e.printStackTrace();
-        }
-    }
-
-    //  読み込み
-    private String fileInput(){
-        InputStream in;
-        String lineBuffer;
-
-        StringBuilder loadData = new StringBuilder();
-
-        try {
-            in = openFileInput("TaskData.json");
-
-            BufferedReader reader= new BufferedReader(new InputStreamReader(in,"UTF-8"));
-            while( (lineBuffer = reader.readLine()) != null ){
-                Log.d("FileAccess",lineBuffer);
-                loadData.append(lineBuffer);
-            }
-        } catch (IOException e) {
-            // TODO 自動生成された catch ブロック
-            e.printStackTrace();
-        }
-
-        return loadData.toString();
-    }
     private class OnBindSimpleAdapter implements SimpleAdapter.ViewBinder{
         @Override
         public boolean setViewValue(View view, Object o, String s) {
@@ -309,8 +221,8 @@ public class MainActivity extends AppCompatActivity {
 
             mTaskList.TaskList.get(i).setIsCompleted(true);
 
-            //  Jsonとして保存
-            saveJson();
+            //  保存
+            mTaskList.saveData(MainActivity.this,FILE_NAME);
         }
     }
 
