@@ -18,6 +18,8 @@ public class TaskAddDialogFragment extends DialogFragment {
 
     private EditText mEditText;
 
+    private String mSetText = "";
+
     //  新規追加時
     public TaskAddDialogFragment(TaskAddListener listener){
         mTaskAddListener = listener;
@@ -26,6 +28,7 @@ public class TaskAddDialogFragment extends DialogFragment {
     //  既存データの編集時用
     public TaskAddDialogFragment(TaskAddListener listener,String data){
         mTaskAddListener = listener;
+        mSetText = data;
     }
 
     @NonNull
@@ -40,6 +43,8 @@ public class TaskAddDialogFragment extends DialogFragment {
 
         View view = inflater.inflate(R.layout.add_dialog_content,null);
         mEditText = view.findViewById(R.id.etTaskName);
+
+        mEditText.setText(mSetText);
 
         builder.setView(view);
 

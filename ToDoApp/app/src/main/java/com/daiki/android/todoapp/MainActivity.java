@@ -229,8 +229,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         boolean returnVal = true;
 
-        if(item.getItemId() == R.id.uncheck) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        int uiId = item.getItemId();
+
+        if(uiId == R.id.uncheck) {
             ViewGroup vg = (ViewGroup)info.targetView;
             String taskId = findTaskId(vg);
             TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
@@ -241,10 +244,23 @@ public class MainActivity extends AppCompatActivity {
             //  保存
             mTaskList.saveData(MainActivity.this,FILE_NAME);
 
-        }else if(item.getItemId() == R.id.delete) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        }else if(uiId == R.id.delete) {
             mTaskList.getTaskList().remove(info.position);
             updateListView(mTaskList.getTaskList());
+        }else if(uiId == R.id.rename){
+            ViewGroup vg = (ViewGroup)info.targetView;
+            String taskId = findTaskId(vg);
+            TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
+
+            TaskAddDialogFragment dialog = new TaskAddDialogFragment(name->{
+                data.setTask(name);
+                updateCell(taskId,vg);
+
+                //  保存
+                mTaskList.saveData(MainActivity.this,FILE_NAME);
+            },data.getTask());
+            //  ダイアログ表示
+            dialog.show(getSupportFragmentManager(),"rename_task");
         }else {
             returnVal = super.onContextItemSelected(item);
         }
