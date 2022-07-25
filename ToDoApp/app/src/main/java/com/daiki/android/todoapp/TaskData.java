@@ -35,7 +35,7 @@ public class TaskData {
         this.mTask = mTask;
     }
 
-    public boolean isIsCompleted() {
+    public boolean isCompleted() {
         return mIsCompleted;
     }
 

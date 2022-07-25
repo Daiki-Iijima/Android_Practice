@@ -22,9 +22,27 @@ import java.util.List;
 public class TaskDataViewModel extends ViewModel {
     public List<TaskData> TaskList;
 
+    public List<TaskData> getTaskList() {
+        return TaskList;
+    }
+
+    public void setTaskList(List<TaskData> taskList) {
+        TaskList = taskList;
+    }
+
     private final static String ID = "ID";
     private final static String TASK = "Task";
     private final static String IS_COMPLETED = "IsCompleted";
+
+    //  タスクの追加
+    public void addTask(String str){
+        TaskList.add(new TaskData(str));
+    }
+
+    //  タスクの追加
+    public void addTask(TaskData data){
+        TaskList.add(data);
+    }
 
     //  コンストラクタ
     //  saveFileName : データを保存するファイル名
@@ -65,7 +83,7 @@ public class TaskDataViewModel extends ViewModel {
             try {
                 jsonObject.put(ID, task.getId());
                 jsonObject.put(TASK, task.getTask());
-                jsonObject.put(IS_COMPLETED, task.isIsCompleted());
+                jsonObject.put(IS_COMPLETED, task.isCompleted());
                 jsonArray.put(jsonObject);
             } catch (JSONException e) {
                 e.printStackTrace();
