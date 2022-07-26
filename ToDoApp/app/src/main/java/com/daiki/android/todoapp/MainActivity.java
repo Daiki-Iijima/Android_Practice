@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
         //  セルのUIを取得
         for(int i = 0;i < vg.getChildCount();i++) {
-            View view = (View)vg.getChildAt(i);
+            View view = vg.getChildAt(i);
             int uiId = view.getId();
 
             if(uiId == R.id.tvId){
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         String retValue = "";
         //  セルのUIを取得
         for(int i = 0;i < vg.getChildCount();i++) {
-            View view = (View)vg.getChildAt(i);
+            View view = vg.getChildAt(i);
             int uiId = view.getId();
 
             if(uiId == R.id.tvId){
