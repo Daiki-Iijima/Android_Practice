@@ -31,6 +31,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
+    private TextView mResultTextView;
 
     private TaskDataViewModel mTaskList;
 
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mResultTextView = findViewById(R.id.tvResult);
 
         mTaskList = new ViewModelProvider(MainActivity.this).get(TaskDataViewModel.class);
         mTaskList.clearCacheData();
@@ -91,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
         mListView.setAdapter(simpleAdapter);
 
         mTaskList.saveData(MainActivity.this,FILE_NAME);
+
+        long completedCount = mTaskList.getTaskList().stream().filter(TaskData::isCompleted).count();
+
+        mResultTextView.setText(String.format(Locale.getDefault(),"完了タスク : %d / %d",completedCount, (long) mTaskList.getTaskList().size()));
     }
 
     //  タスクが終了したかによってUIを変更する
