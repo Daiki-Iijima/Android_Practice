@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
     private TextView mResultTextView;
+    private CheckBox mIsShowCompletedCheckBox;
 
     private TaskDataViewModel mTaskList;
 
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mResultTextView = findViewById(R.id.tvResult);
+        mIsShowCompletedCheckBox = findViewById(R.id.cbIsShowCompleted);
+        mIsShowCompletedCheckBox.setOnCheckedChangeListener(new OnChangeCheck());
 
         mTaskList = new ViewModelProvider(MainActivity.this).get(TaskDataViewModel.class);
         mTaskList.clearCacheData();
@@ -77,8 +81,16 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < data.size(); i++) {
             HashMap<String, String> tmpData = new HashMap<>();
-            tmpData.put("id", data.get(i).getId());   //  バインドするときに指標にするために
-            setData.add(tmpData);
+            TaskData task = data.get(i);
+            tmpData.put("id", task.getId());   //  バインドするときに指標にするために
+            if(mIsShowCompletedCheckBox.isChecked()) {
+                if(!task.isCompleted()){
+                    setData.add(tmpData);
+                }
+            }
+            else{
+                setData.add(tmpData);
+            }
         }
 
         SimpleAdapter simpleAdapter = new SimpleAdapter(
@@ -98,6 +110,17 @@ public class MainActivity extends AppCompatActivity {
         long completedCount = mTaskList.getTaskList().stream().filter(TaskData::isCompleted).count();
 
         mResultTextView.setText(String.format(Locale.getDefault(),"完了タスク : %d / %d",completedCount, (long) mTaskList.getTaskList().size()));
+    }
+
+    private class OnChangeCheck implements CompoundButton.OnCheckedChangeListener{
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            int uiId = compoundButton.getId();
+
+            if(uiId == R.id.cbIsShowCompleted){
+                updateListView(mTaskList.getTaskList());
+            }
+        }
     }
 
     //  タスクが終了したかによってUIを変更する
