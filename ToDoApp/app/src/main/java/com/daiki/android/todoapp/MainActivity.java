@@ -131,25 +131,18 @@ public class MainActivity extends AppCompatActivity {
         TextView tvId = null;
         CheckBox cbCompleted = null;
 
-        //  セルのUIを取得
-        for(int i = 0;i < vg.getChildCount();i++) {
-            View view = vg.getChildAt(i);
-            int uiId = view.getId();
+        //  セル内のUIパーツを取得
+        int[] ids = {R.id.tvId,R.id.tvTitle,R.id.cbIsCompleted};
+        List<View> getViewList = findViewGroupInView(vg,ids);
 
-            if(uiId == R.id.tvId){
-                tvId = (TextView) view;
-            } else if(uiId == R.id.tvTitle){
-                tvTitle = (TextView) view;
-            }else if(uiId == R.id.cbIsCompleted){
-                cbCompleted = (CheckBox) view;
-            }
+        if(getViewList.size() == 0){
+            return;
         }
 
-        //  セルのTaskDataを取得
-        //  IDが入力されていない場合、UIからIDを取得
-        if(taskId.isEmpty()){
-            taskId = findTaskId(vg);
-        }
+        tvId = (TextView)getViewList.stream().filter(v -> v.getId() == R.id.tvId).toArray()[0];
+        tvTitle = (TextView)getViewList.stream().filter(v -> v.getId() == R.id.tvTitle).toArray()[0];
+        cbCompleted = (CheckBox) getViewList.stream().filter(v -> v.getId() == R.id.cbIsCompleted).toArray()[0];
+
         String finalTaskId = taskId;
         TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(finalTaskId)).toArray()[0];
 
@@ -205,24 +198,25 @@ public class MainActivity extends AppCompatActivity {
             tvTitle.invalidate();
     }
 
-    //  ViewGroupからTaskIdを取得する
-    private String findTaskId(ViewGroup vg){
-        String retValue = "";
+    //  ViewGroupから指定したIDのViewを取得する
+    //  見つからない場合、nullが戻る
+    public List<View> findViewGroupInView(ViewGroup vg, int[] ids) {
+        List<View> retView = new ArrayList<>();
         //  セルのUIを取得
-        for(int i = 0;i < vg.getChildCount();i++) {
+        for (int i = 0; i < vg.getChildCount(); i++) {
             View view = vg.getChildAt(i);
-            int uiId = view.getId();
+            int viewId = view.getId();
 
-            if(uiId == R.id.tvId){
-                TextView tvId = (TextView) view;
-                retValue = tvId.getText().toString();
+            for (int idNo = 0; idNo < ids.length; idNo++) {
+                if (viewId == ids[idNo]) {
+                    retView.add(view);
+                }
             }
         }
-
-        return retValue;
+        return retView;
     }
 
-    private class OnBindSimpleAdapter implements SimpleAdapter.ViewBinder{
+    private class OnBindSimpleAdapter implements SimpleAdapter.ViewBinder {
         @Override
         public boolean setViewValue(View view, Object o, String s) {
             ViewGroup vg = (ViewGroup)view.getParent();
@@ -263,9 +257,18 @@ public class MainActivity extends AppCompatActivity {
 
         int uiId = item.getItemId();
 
+        ViewGroup vg = (ViewGroup)info.targetView;
+        int[] ids = {R.id.tvId,R.id.tvTitle,R.id.cbIsCompleted};
+        List<View> views= findViewGroupInView(vg,ids);
+
+        if(views.size() == 0){
+            return false;
+        }
+
+        TextView idView = (TextView) views.stream().filter(v -> v.getId() == R.id.tvId).toArray()[0];
+        String taskId = idView.getText().toString();
+
         if(uiId == R.id.uncheck) {
-            ViewGroup vg = (ViewGroup)info.targetView;
-            String taskId = findTaskId(vg);
             TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
             data.setIsCompleted(false);
 
@@ -278,8 +281,6 @@ public class MainActivity extends AppCompatActivity {
             mTaskList.getTaskList().remove(info.position);
             updateListView(mTaskList.getTaskList());
         }else if(uiId == R.id.rename){
-            ViewGroup vg = (ViewGroup)info.targetView;
-            String taskId = findTaskId(vg);
             TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
 
             TaskAddDialogFragment dialog = new TaskAddDialogFragment(name->{
