@@ -127,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
     //  vg : リストビューのセルのルートオブジェクト
     private void updateCell(String taskId, ViewGroup vg){
 
-        TextView tvTitle = null;
-        TextView tvId = null;
-        CheckBox cbCompleted = null;
+        TextView tvTitle;
+        TextView tvId;
+        CheckBox cbCompleted;
 
         //  セル内のUIパーツを取得
         int[] ids = {R.id.tvId,R.id.tvTitle,R.id.cbIsCompleted};
@@ -143,8 +143,7 @@ public class MainActivity extends AppCompatActivity {
         tvTitle = (TextView)getViewList.stream().filter(v -> v.getId() == R.id.tvTitle).toArray()[0];
         cbCompleted = (CheckBox) getViewList.stream().filter(v -> v.getId() == R.id.cbIsCompleted).toArray()[0];
 
-        String finalTaskId = taskId;
-        TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(finalTaskId)).toArray()[0];
+        TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
 
         //  現在の状態を反映
         if(tvId != null)
@@ -207,8 +206,8 @@ public class MainActivity extends AppCompatActivity {
             View view = vg.getChildAt(i);
             int viewId = view.getId();
 
-            for (int idNo = 0; idNo < ids.length; idNo++) {
-                if (viewId == ids[idNo]) {
+            for (int id : ids) {
+                if (viewId == id) {
                     retView.add(view);
                 }
             }
