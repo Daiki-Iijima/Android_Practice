@@ -13,9 +13,11 @@
         <entry key="..\:/Users/daiki/Desktop/Andorid_Practice/ToDoApp/app/src/main/res/menu/context.xml" value="0.36041666666666666" />
         <entry key="..\:/Users/daiki/Desktop/Andorid_Practice/ToDoApp/app/src/main/res/menu/option.xml" value="0.48020833333333335" />
         <entry key="app/src/main/res/layout/activity_dialog.xml" value="0.25832492431886983" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.375" />
         <entry key="app/src/main/res/layout/activity_main2.xml" value="0.1" />
         <entry key="app/src/main/res/layout/add_dialog_content.xml" value="0.19791666666666666" />
+        <entry key="app/src/main/res/layout/fragment_add_task_dialog.xml" value="0.3188405797101449" />
+        <entry key="app/src/main/res/layout/list_cell.xml" value="0.13451086956521738" />
         <entry key="app/src/main/res/layout/sample_my_view.xml" value="0.1" />
         <entry key="app/src/main/res/layout/sample_my_view2.xml" value="0.12209889001009082" />
         <entry key="app/src/main/res/menu/option.xml" value="0.1925925925925926" />

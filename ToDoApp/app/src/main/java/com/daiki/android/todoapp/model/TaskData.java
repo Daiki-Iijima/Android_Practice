@@ -1,4 +1,4 @@
-package com.daiki.android.todoapp;
+package com.daiki.android.todoapp.model;
 
 import java.util.UUID;
 
@@ -7,14 +7,16 @@ public class TaskData {
     private String mId;
     private String mTask;
     private boolean mIsCompleted;
+    private String mTaskGroup;
 
     public TaskData(){
     }
 
-    public TaskData(String taskName){
+    public TaskData(String taskName,String groupName){
         //  UUIDを生成
         setId(UUID.randomUUID().toString());
 
+        setTaskGroup(groupName);
         setTask(taskName);
         setIsCompleted(false);
     }
@@ -41,5 +43,17 @@ public class TaskData {
 
     public void setIsCompleted(boolean mIsCompleted) {
         this.mIsCompleted = mIsCompleted;
+    }
+
+    public String getTaskGroup() {
+        if(mTaskGroup == null){
+            return "All";
+        }else {
+            return mTaskGroup;
+        }
+    }
+
+    public void setTaskGroup(String mTaskGroup) {
+        this.mTaskGroup = mTaskGroup;
     }
 }

@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">Simple Todo</string>
-    <string name="dialog_title">タスクを追加する</string>
     <string name="menu_task_add">タスク追加</string>
-    <string name="dialog_task_add">追加</string>
-    <string name="dialog_cancel">キャンセル</string>
+    <string name="dialog_positive_btn">追加</string>
+    <string name="dialog_negative_btn">キャンセル</string>
+
+<!--    タスク追加ダイアログ関係テキスト-->
+    <string name="dialog_task_name">タスク名</string>
+    <string name="dialog_task_group">グループ名</string>
+    <string name="dialog_task_positive_btn">追加</string>
+    <string name="dialog_task_negative_btn">キャンセル</string>
 </resources>

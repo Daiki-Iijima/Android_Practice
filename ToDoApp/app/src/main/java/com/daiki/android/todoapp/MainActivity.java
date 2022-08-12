@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListView;
@@ -23,11 +24,21 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.daiki.android.todoapp.dialog.InputDialogFragment;
+import com.daiki.android.todoapp.dialog.TaskDialogFragment;
+import com.daiki.android.todoapp.model.GroupData;
+import com.daiki.android.todoapp.model.TaskData;
+import com.daiki.android.todoapp.viewmodel.GroupDataViewModel;
+import com.daiki.android.todoapp.viewmodel.GroupDataViewModelListener;
+import com.daiki.android.todoapp.viewmodel.TaskDataViewModel;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,9 +46,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView mResultTextView;
     private CheckBox mIsShowCompletedCheckBox;
 
-    private TaskDataViewModel mTaskList;
+    private TaskDataViewModel mTaskDataViewModel;
+    private GroupDataViewModel mGroupDataViewModel;
 
-    private final static String FILE_NAME = "TaskData.json";
+    private final static String TASK_DATA_JSON = "TaskData.json";
+    private final static String GROUP_DATA_JSON = "GroupData.json";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +61,14 @@ public class MainActivity extends AppCompatActivity {
         mIsShowCompletedCheckBox = findViewById(R.id.cbIsShowCompleted);
         mIsShowCompletedCheckBox.setOnCheckedChangeListener(new OnChangeCheck());
 
-        mTaskList = new ViewModelProvider(MainActivity.this).get(TaskDataViewModel.class);
-        mTaskList.clearCacheData();
+        //  ViewModelのインスタンスを取得
+        mTaskDataViewModel = new ViewModelProvider(MainActivity.this).get(TaskDataViewModel.class);
+        mTaskDataViewModel.clearCacheData();
+        mTaskDataViewModel.loadData(MainActivity.this, TASK_DATA_JSON);
 
-        mTaskList.loadData(MainActivity.this,FILE_NAME);
+        mGroupDataViewModel = new ViewModelProvider(MainActivity.this).get(GroupDataViewModel.class);
+        mGroupDataViewModel.clearCacheData();
+        mGroupDataViewModel.loadData(MainActivity.this,GROUP_DATA_JSON);
 
         ActionBar bar = getSupportActionBar();
         if(bar == null) { return ;}
@@ -64,12 +81,77 @@ public class MainActivity extends AppCompatActivity {
         registerForContextMenu(mListView);
 
         //  リストビューを更新
-        updateListView(mTaskList.getTaskList());
+        if(mGroupDataViewModel.getSelectedGroup() != null) {
+            Stream<TaskData> stream = mTaskDataViewModel.getTaskList().stream();
+            TaskData[] data = stream.filter(taskData -> taskData.getTaskGroup().equals(mGroupDataViewModel.getSelectedGroup().getGroupName())).toArray(TaskData[]::new);
+            updateListView(Arrays.asList(data));
+        }else{
+            updateListView(mTaskDataViewModel.getTaskList());
+        }
+
+        ViewGroup lvGroup = findViewById(R.id.lvGroup);
+
+        //  デフォルトのグループデータをビューに追加
+        Button btn = new Button(MainActivity.this);
+        btn.setText("グループの追加");
+        btn.setOnClickListener(view -> {
+            //  ダイアログを生成
+            InputDialogFragment dialog = new InputDialogFragment(taskName ->{
+                Button addBtn = new Button(MainActivity.this);
+                addBtn.setText(taskName);
+                addBtn.setOnClickListener(new OnClickGroupBtn());
+                lvGroup.addView(addBtn);
+            },"グループ追加");
+            dialog.show(getSupportFragmentManager(),"add_group");
+        });
+        lvGroup.addView(btn);
+
+        //  すべてのグループを表示できるるグループを設定
+        Button defaultBtn = new Button(MainActivity.this);
+        defaultBtn.setText("All");
+        defaultBtn.setOnClickListener(new OnClickGroupBtn());
+        lvGroup.addView(defaultBtn);
+
+        //  グループビューのデータを反映
+        for(GroupData data : mGroupDataViewModel.getGroupList()){
+            Button addBtn = new Button(MainActivity.this);
+            addBtn.setText(data.getGroupName());
+            addBtn.setOnClickListener(new OnClickGroupBtn());
+            lvGroup.addView(addBtn);
+        }
+
+        //  データの更新リスナーを設定
+        mGroupDataViewModel.setUpdateHandler(new GroupDataViewModelListener() {
+            @Override
+            public void updateValue(List<GroupData> updateList) {
+                //  グループビューのデータを反映
+                for(GroupData data : updateList){
+                    Button addBtn = new Button(MainActivity.this);
+                    addBtn.setText(data.getGroupName());
+                    addBtn.setOnClickListener(new OnClickGroupBtn());
+                    lvGroup.addView(addBtn);
+                }
+            }
+        });
+
     }
 
-    private void addListView(String taskName){
-        mTaskList.addTask(taskName);
-        updateListView(mTaskList.getTaskList());
+    private class OnClickGroupBtn implements View.OnClickListener{
+        @Override
+        public void onClick(View view) {
+            Button b = (Button)view;
+            String groupName= b.getText().toString();
+            GroupData selectGroup = mGroupDataViewModel.getGroupData(groupName);
+            mGroupDataViewModel.setSelectedGroup(selectGroup);
+            Stream<TaskData> stream = mTaskDataViewModel.getTaskList().stream();
+            TaskData[] data = stream.filter(taskData -> taskData.getTaskGroup().equals(groupName)).toArray(TaskData[]::new);
+            updateListView(Arrays.asList(data));
+        }
+    }
+
+    private void addListView(String taskName,String groupName){
+        mTaskDataViewModel.addTask(taskName,groupName);
+        updateListView(mTaskDataViewModel.getTaskList());
     }
 
     private void updateListView(List<TaskData> data){
@@ -83,14 +165,7 @@ public class MainActivity extends AppCompatActivity {
             HashMap<String, String> tmpData = new HashMap<>();
             TaskData task = data.get(i);
             tmpData.put("id", task.getId());   //  バインドするときに指標にするために
-            if(mIsShowCompletedCheckBox.isChecked()) {
-                if(!task.isCompleted()){
-                    setData.add(tmpData);
-                }
-            }
-            else{
-                setData.add(tmpData);
-            }
+            setData.add(tmpData);
         }
 
         SimpleAdapter simpleAdapter = new SimpleAdapter(
@@ -105,20 +180,25 @@ public class MainActivity extends AppCompatActivity {
 
         mListView.setAdapter(simpleAdapter);
 
-        mTaskList.saveData(MainActivity.this,FILE_NAME);
+        mTaskDataViewModel.saveData(MainActivity.this, TASK_DATA_JSON);
 
-        long completedCount = mTaskList.getTaskList().stream().filter(TaskData::isCompleted).count();
+        long completedCount = mTaskDataViewModel.getTaskList().stream().filter(TaskData::isCompleted).count();
 
-        mResultTextView.setText(String.format(Locale.getDefault(),"完了タスク : %d / %d",completedCount, (long) mTaskList.getTaskList().size()));
+        mResultTextView.setText(String.format(Locale.getDefault(),"完了タスク : %d / %d",completedCount, (long) mTaskDataViewModel.getTaskList().size()));
     }
 
     private class OnChangeCheck implements CompoundButton.OnCheckedChangeListener{
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             int uiId = compoundButton.getId();
-
             if(uiId == R.id.cbIsShowCompleted){
-                updateListView(mTaskList.getTaskList());
+                TaskData[] data;
+                if(b){
+                    data = mTaskDataViewModel.getTaskList().stream().filter(taskData -> !taskData.isCompleted()).toArray(TaskData[]::new);
+                }else{
+                    data = mTaskDataViewModel.getTaskList().stream().filter(taskData -> taskData.isCompleted()).toArray(TaskData[]::new);
+                }
+                updateListView(Arrays.asList(data));
             }
         }
     }
@@ -143,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         tvTitle = (TextView)getViewList.stream().filter(v -> v.getId() == R.id.tvTitle).toArray()[0];
         cbCompleted = (CheckBox) getViewList.stream().filter(v -> v.getId() == R.id.cbIsCompleted).toArray()[0];
 
-        TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
+        TaskData data = (TaskData) mTaskDataViewModel.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
 
         //  現在の状態を反映
         if(tvId != null)
@@ -228,13 +308,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             ViewGroup vg = (ViewGroup)view;
-            TaskData taskData = mTaskList.getTaskList().get(i);
+            TaskData taskData = mTaskDataViewModel.getTaskList().get(i);
             taskData.setIsCompleted(true);
 
             updateCell(taskData.getId(),vg);
 
             //  保存
-            mTaskList.saveData(MainActivity.this,FILE_NAME);
+            mTaskDataViewModel.saveData(MainActivity.this, TASK_DATA_JSON);
         }
     }
 
@@ -268,26 +348,26 @@ public class MainActivity extends AppCompatActivity {
         String taskId = idView.getText().toString();
 
         if(uiId == R.id.uncheck) {
-            TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
+            TaskData data = (TaskData) mTaskDataViewModel.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
             data.setIsCompleted(false);
 
             updateCell(taskId,vg);
 
             //  保存
-            mTaskList.saveData(MainActivity.this,FILE_NAME);
+            mTaskDataViewModel.saveData(MainActivity.this, TASK_DATA_JSON);
 
         }else if(uiId == R.id.delete) {
-            mTaskList.getTaskList().remove(info.position);
-            updateListView(mTaskList.getTaskList());
+            mTaskDataViewModel.getTaskList().remove(info.position);
+            updateListView(mTaskDataViewModel.getTaskList());
         }else if(uiId == R.id.rename){
-            TaskData data = (TaskData) mTaskList.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
+            TaskData data = (TaskData) mTaskDataViewModel.getTaskList().stream().filter(f -> f.getId().equals(taskId)).toArray()[0];
 
-            TaskAddDialogFragment dialog = new TaskAddDialogFragment(name->{
+            InputDialogFragment dialog = new InputDialogFragment(name->{
                 data.setTask(name);
                 updateCell(taskId,vg);
 
                 //  保存
-                mTaskList.saveData(MainActivity.this,FILE_NAME);
+                mTaskDataViewModel.saveData(MainActivity.this, TASK_DATA_JSON);
             },data.getTask());
             //  ダイアログ表示
             dialog.show(getSupportFragmentManager(),"rename_task");
@@ -317,7 +397,13 @@ public class MainActivity extends AppCompatActivity {
 
         //  タスクの追加
         if(id == R.id.btAdd){
-            TaskAddDialogFragment dialog = new TaskAddDialogFragment(this::addListView);
+            //  ダイアログ生成
+            TaskDialogFragment dialog = new TaskDialogFragment((taskName, taskGroup) ->{
+                addListView(taskName,taskGroup);
+                mGroupDataViewModel.addGroup(new GroupData(taskGroup));
+                mGroupDataViewModel.saveData(MainActivity.this,GROUP_DATA_JSON);
+            },"タスク追加");
+
             //  ダイアログ表示
             dialog.show(getSupportFragmentManager(),"add_task");
         }
@@ -325,16 +411,17 @@ public class MainActivity extends AppCompatActivity {
         //  タスクを一気に追加(いずれ消す)
         if(id == R.id.btLoopAdd){
             for(int i = 1;i < 711;i++) {
-                addListView(String.format(Locale.getDefault(),"%d",i));
+                addListView(String.format(Locale.getDefault(),"%d",i),"All");
             }
         }
 
         //  すべてのタスクを消す
         if(id == R.id.btAllDelete){
-            mTaskList.deleteData(MainActivity.this,FILE_NAME);
-            updateListView(mTaskList.getTaskList());
+            mTaskDataViewModel.deleteData(MainActivity.this, TASK_DATA_JSON);
+            updateListView(mTaskDataViewModel.getTaskList());
         }
 
         return true;
     }
+
 }

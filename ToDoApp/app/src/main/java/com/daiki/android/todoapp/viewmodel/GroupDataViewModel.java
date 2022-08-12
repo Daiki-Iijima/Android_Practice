@@ -1,8 +1,11 @@
-package com.daiki.android.todoapp;
+package com.daiki.android.todoapp.viewmodel;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
+
+import com.daiki.android.todoapp.model.GroupData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,40 +22,78 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskDataViewModel extends ViewModel {
-    public List<TaskData> TaskList;
+public class GroupDataViewModel extends ViewModel {
 
-    public List<TaskData> getTaskList() {
-        return TaskList;
+    private GroupDataViewModelListener mListener;
+
+    private List<GroupData> mGroupList;
+
+    private final static String GROUP_NAME = "GroupName";
+
+    public GroupDataViewModel(){
+        mGroupList = new ArrayList<>();
     }
 
-    public void setTaskList(List<TaskData> taskList) {
-        TaskList = taskList;
+    public List<GroupData> getGroupList() {
+        return mGroupList;
     }
 
-    private final static String ID = "ID";
-    private final static String TASK = "Task";
-    private final static String IS_COMPLETED = "IsCompleted";
 
-    //  タスクの追加
-    public void addTask(String str){
-        TaskList.add(new TaskData(str));
+    private GroupData selectedGroup;
+
+    public GroupData getSelectedGroup() {
+        return selectedGroup;
     }
 
-    //  タスクの追加
-    public void addTask(TaskData data){
-        TaskList.add(data);
+    public void setSelectedGroup(GroupData selectedGroup) {
+        this.selectedGroup = selectedGroup;
     }
 
-    //  コンストラクタ
-    //  saveFileName : データを保存するファイル名
-    public TaskDataViewModel(){
-        TaskList = new ArrayList<>();
+    public void setGroupList(List<GroupData> mGroupList) {
+        this.mGroupList = mGroupList;
+    }
+
+    @Nullable
+    public GroupData getGroupData(String key){
+        for(GroupData data : getGroupList()){
+            if(data.getGroupName().equals(key)){
+                return data;
+            }
+        }
+
+        return null;
+    }
+
+    public void addGroup(GroupData addGroup){
+        boolean isUpdate = false;
+        if(mGroupList.size() == 0){
+            mGroupList.add(addGroup);
+            isUpdate = true;
+        }else {
+            List<GroupData> tmp = new ArrayList<>(mGroupList);
+            for (GroupData group : tmp) {
+                //  重複していない場合は、追加
+                if (!group.checkEqual(addGroup)) {
+                    mGroupList.add(addGroup);
+                    isUpdate = true;
+                }
+            }
+        }
+
+        if(isUpdate){
+            if(mListener != null){
+                mListener.updateValue(getGroupList());
+            }
+        }
+    }
+
+    public void setUpdateHandler(GroupDataViewModelListener listener){
+        mListener = listener;
     }
 
     //  ローカルのデータをクリア
     public void clearCacheData(){
-        TaskList = new ArrayList<>();
+        mGroupList = new ArrayList<>();
     }
 
     //  データのクリア
@@ -62,7 +103,7 @@ public class TaskDataViewModel extends ViewModel {
     }
 
     //  データの読み込み
-    public void loadData(Context context,String fileName){
+    public void loadData(Context context, String fileName){
         String json = loadFile(context,fileName);
         loadJson(json);
     }
@@ -77,13 +118,11 @@ public class TaskDataViewModel extends ViewModel {
     private String createJson(){
         //  Jsonテスト
         JSONArray jsonArray = new JSONArray();
-        for(int i = 0;i < TaskList.size();i++) {
+        for(int i = 0; i < mGroupList.size(); i++) {
             JSONObject jsonObject = new JSONObject();
-            TaskData task = TaskList.get(i);
+            GroupData groupData = mGroupList.get(i);
             try {
-                jsonObject.put(ID, task.getId());
-                jsonObject.put(TASK, task.getTask());
-                jsonObject.put(IS_COMPLETED, task.isCompleted());
+                jsonObject.put(GROUP_NAME, groupData.getGroupName());
                 jsonArray.put(jsonObject);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -100,11 +139,8 @@ public class TaskDataViewModel extends ViewModel {
             JSONArray jsonArray = new JSONArray(json);
             for(int i = 0; i < jsonArray.length(); i++){
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
-                TaskData data = new TaskData();
-                data.setId(jsonObject.get(ID).toString());
-                data.setTask(jsonObject.get(TASK).toString());
-                data.setIsCompleted((boolean)jsonObject.get(IS_COMPLETED));
-                TaskList.add(data);
+                GroupData data = new GroupData(jsonObject.get(GROUP_NAME).toString());
+                mGroupList.add(data);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -146,5 +182,4 @@ public class TaskDataViewModel extends ViewModel {
 
         return loadData.toString();
     }
-
 }
