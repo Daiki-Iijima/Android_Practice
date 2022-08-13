@@ -91,21 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
         ViewGroup lvGroup = findViewById(R.id.lvGroup);
 
-        //  デフォルトのグループデータをビューに追加
-        Button btn = new Button(MainActivity.this);
-        btn.setText("グループの追加");
-        btn.setOnClickListener(view -> {
-            //  ダイアログを生成
-            InputDialogFragment dialog = new InputDialogFragment(taskName ->{
-                Button addBtn = new Button(MainActivity.this);
-                addBtn.setText(taskName);
-                addBtn.setOnClickListener(new OnClickGroupBtn());
-                lvGroup.addView(addBtn);
-            },"グループ追加");
-            dialog.show(getSupportFragmentManager(),"add_group");
-        });
-        lvGroup.addView(btn);
-
         //  すべてのグループを表示できるるグループを設定
         Button defaultBtn = new Button(MainActivity.this);
         defaultBtn.setText("All");
@@ -141,6 +126,13 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             Button b = (Button)view;
             String groupName= b.getText().toString();
+
+            //  ALLの場合は、すべてのタスクを表示
+            if(groupName.equals("All")){
+                updateListView(mTaskDataViewModel.getTaskList());
+                return;
+            }
+
             GroupData selectGroup = mGroupDataViewModel.getGroupData(groupName);
             mGroupDataViewModel.setSelectedGroup(selectGroup);
             Stream<TaskData> stream = mTaskDataViewModel.getTaskList().stream();
@@ -395,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
         //  レイアウトファイルで設定してあるIDを取得できるので、ここで分岐する
         int id = item.getItemId();
 
-        //  タスクの追加
+        //  タスク追加
         if(id == R.id.btAdd){
             //  ダイアログ生成
             TaskDialogFragment dialog = new TaskDialogFragment((taskName, taskGroup) ->{
@@ -408,17 +400,28 @@ public class MainActivity extends AppCompatActivity {
             dialog.show(getSupportFragmentManager(),"add_task");
         }
 
-        //  タスクを一気に追加(いずれ消す)
-        if(id == R.id.btLoopAdd){
-            for(int i = 1;i < 711;i++) {
-                addListView(String.format(Locale.getDefault(),"%d",i),"All");
-            }
+        //  グループ追加
+        if(id == R.id.btAddGroup){
+            ViewGroup lvGroup = findViewById(R.id.lvGroup);
+            //  ダイアログを生成
+            InputDialogFragment dialog = new InputDialogFragment(taskName ->{
+                Button addBtn = new Button(MainActivity.this);
+                addBtn.setText(taskName);
+                addBtn.setOnClickListener(new OnClickGroupBtn());
+                lvGroup.addView(addBtn);
+            },"グループ追加");
+            dialog.show(getSupportFragmentManager(),"add_group");
         }
 
         //  すべてのタスクを消す
-        if(id == R.id.btAllDelete){
+        if(id == R.id.btAllDeleteTask){
             mTaskDataViewModel.deleteData(MainActivity.this, TASK_DATA_JSON);
             updateListView(mTaskDataViewModel.getTaskList());
+        }
+
+        //  すべてのグループを消す
+        if(id == R.id.btAllDeleteGroup){
+            mGroupDataViewModel.deleteData(MainActivity.this, GROUP_DATA_JSON);
         }
 
         return true;

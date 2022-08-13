@@ -9,15 +9,22 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/btLoopAdd"
+        android:id="@+id/btAddGroup"
         android:icon="@android:drawable/ic_menu_add"
-        android:title="指定個追加"
-        app:showAsAction="never" />
+        android:title="@string/menu_group_add"
+        app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/btAllDelete"
+        android:id="@+id/btAllDeleteGroup"
         android:icon="@android:drawable/ic_delete"
-        android:title="すべてのタスクを消去"
+        android:title="@string/menu_group_all_remove"
+        app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/btAllDeleteTask"
+        android:icon="@android:drawable/ic_delete"
+        android:title="@string/menu_task_all_remove"
         app:showAsAction="never" />
 
 </menu>
